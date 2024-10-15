@@ -64,7 +64,7 @@ def menu(user):
     elif i==2 and user.admin:
         newUser()
     elif i==3 and user.admin:
-        newUser()
+        UserList()
     elif i==4:
         return True
     else:
@@ -112,20 +112,23 @@ def UserList(skip=0):
             getUserParams(check)
             edit = int(input('''Для изменения данных введите 1 
 Для показа следующего пользователя введите 2
-Для выхода нажмите 0'''))
+Для выхода нажмите 0
+'''))
         else:
             edit=2
         if edit:
             if edit==1:
-                check[0] = input("Введите новый логин")
-                check[1] = input("Введите новый пароль")
-                check[3] = input("Введите состояние блокировки")
-                check[4] = input("Введите состояние вход без пароля")
+                check[0] = input("Введите новый логин: ")
+                check[1] = input("Введите новый пароль: ")
+                check[3] = input("Введите состояние блокировки: ")
+                check[4] = input("Введите состояние вход без пароля: ")
             f1.write(f'{"|".join(check)}'+'\n')
         else:
             skip = 1
+            f1.write(f'{"|".join(check)}' + '\n')
     f.close()
     f1.close()
+    filechanger()
 def filechanger():
     f = open("users.txt", 'w')
     f1 = open('users2.txt', 'r')
