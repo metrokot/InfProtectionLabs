@@ -1,5 +1,7 @@
-#admin = 1
-#user = 0
+import sys
+from PyQt5 import uic
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
+
 class User:
     def __init__(self, login, password, admin):
         self.login = login
@@ -7,6 +9,11 @@ class User:
         if admin == 'admin':
             self.admin = 1
         else: self.admin = 0
+
+def actions(self, mode):
+    window2 = QMainWindow()
+    uic.loadUi('actions.ui', self.window2)
+    self.window2.show()
 
 def auto():
     name = input("Введите логин: ")
@@ -36,42 +43,35 @@ def checkUser(login, password):
     f.close()
     filechanger()
     return mode
-def ogranich():
-    print('Установите пароль с заданными ограничениями')
-def extrataskpass(extra, newpass):
-    if not extra:
-        return 1
+def extrataskpass(newpass):
     count =0
     for i in list('qwertyuiopasdfghjklzxcvbnm'):
         if i in newpass:
             count+=1
     if count ==0:
-        ogranich()
         return 0
     count = 0
     for i in list(',.-!?"'):
         if i in newpass:
             count += 1
     if count == 0:
-        ogranich()
         return 0
     count = 0
     for i in list('-+()'):
         if i in newpass:
             count += 1
     if count == 0:
-        ogranich()
         return 0
     return 1
 def setpassword(extra):
     lastpass = input("Введите новый пароль: ")
-    newpass = input("Подтвердите новый пароль: ")
-    if lastpass != newpass or not extrataskpass(extra, newpass):
+    newpass = input("Установите новый пароль: ")
+    if lastpass != newpass or not extrataskpass(newpass):
         print('Неверный предыдуший пароль')
         if not contin():
             return False
         else:
-            newpass = setpassword(extra)
+            newpass = setpassword()
     return newpass
 
     with open('users.txt', 'r') as f:
@@ -128,7 +128,7 @@ def contin():
 def newUser():
     login = input("Введите имя нового пользователя: ")
     f = open("users.txt", 'a')
-    f.write(f'{login}||user|0|0|0' + '\n')
+    f.write(f'{login}||user|0|0' + '\n')
     return True
 def UserList(skip=0):
     f = open("users.txt", 'r')
@@ -149,7 +149,6 @@ def UserList(skip=0):
                 check[1] = input("Введите новый пароль: ")
                 check[3] = input("Введите состояние блокировки: ")
                 check[4] = input("Введите состояние вход без пароля: ")
-                check[5] = input("Введите состояние ограничения на пароль: ")
             f1.write(f'{"|".join(check)}'+'\n')
         else:
             skip = 1
@@ -171,7 +170,6 @@ f'''
 Пароль: {list[1]}
 Блокировка: {list[3]}
 Вход без пароля: {list[4]}
-Ограничения на пароль: {list[5]}
 ''')
 
 if __name__ == '__main__':
