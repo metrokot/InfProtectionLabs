@@ -1,5 +1,6 @@
 class User():
     def __init__(self, params):
+        print(params)
         self.login = params[0]
         self.password = params[1]
         self.mode = params[2]
@@ -43,24 +44,6 @@ def setpassword(user, lastpass, newpass, confirmpass):
     return error
 
     
-def menu(user):
-    print('1. Изменение пароля')
-    if(user.admin):
-        print('2. Добавление пользователя')
-        print('3. Список пользователей')
-    print('4. Выход')
-    i = int(input("Введите интересующий режим "))
-    if i==1:
-        passChange(user)
-    elif i==2 and user.admin:
-        newUser()
-    elif i==3 and user.admin:
-        newUser()
-    elif i==4:
-        return True
-    else:
-        print("Неверный ввод")
-    menu(user)
 def passChange(user):
     lastpass = input("Введите старый пароль: ")
     if lastpass != user.password:
@@ -89,8 +72,7 @@ def contin():
     else:
         print("Неверный ввод")
         return contin()
-def newUser():
-    login = input("Введите имя нового пользователя: ")
+def newUser(login):
     f = open("users.txt", 'a')
     f.write(f'{login}||user|0|0' + '\n')
     return True

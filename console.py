@@ -24,7 +24,7 @@ def checkUser(login, password):
             if int(check[3]):
                 print("Вы заблокированы")
             if int(check[4]):
-                check[1] = setpassword()
+                check[1] = setpassword(int(check[5]))
                 check[4] = 0
                 password = input("Введите пароль: ")
             if password == check[1]:
@@ -36,15 +36,42 @@ def checkUser(login, password):
     f.close()
     filechanger()
     return mode
-def setpassword():
+def ogranich():
+    print('Установите пароль с заданными ограничениями')
+def extrataskpass(extra, newpass):
+    if not extra:
+        return 1
+    count =0
+    for i in list('qwertyuiopasdfghjklzxcvbnm'):
+        if i in newpass:
+            count+=1
+    if count ==0:
+        ogranich()
+        return 0
+    count = 0
+    for i in list(',.-!?"'):
+        if i in newpass:
+            count += 1
+    if count == 0:
+        ogranich()
+        return 0
+    count = 0
+    for i in list('-+()'):
+        if i in newpass:
+            count += 1
+    if count == 0:
+        ogranich()
+        return 0
+    return 1
+def setpassword(extra):
     lastpass = input("Введите новый пароль: ")
-    newpass = input("Установите новый пароль: ")
-    if lastpass != newpass:
+    newpass = input("Подтвердите новый пароль: ")
+    if lastpass != newpass or not extrataskpass(extra, newpass):
         print('Неверный предыдуший пароль')
         if not contin():
             return False
         else:
-            newpass = setpassword()
+            newpass = setpassword(extra)
     return newpass
 
     with open('users.txt', 'r') as f:
@@ -64,7 +91,7 @@ def menu(user):
     elif i==2 and user.admin:
         newUser()
     elif i==3 and user.admin:
-        newUser()
+        UserList()
     elif i==4:
         return True
     else:
@@ -101,7 +128,7 @@ def contin():
 def newUser():
     login = input("Введите имя нового пользователя: ")
     f = open("users.txt", 'a')
-    f.write(f'{login}||user|0|0' + '\n')
+    f.write(f'{login}||user|0|0|0' + '\n')
     return True
 def UserList(skip=0):
     f = open("users.txt", 'r')
@@ -112,20 +139,24 @@ def UserList(skip=0):
             getUserParams(check)
             edit = int(input('''Для изменения данных введите 1 
 Для показа следующего пользователя введите 2
-Для выхода нажмите 0'''))
+Для выхода нажмите 0
+'''))
         else:
             edit=2
         if edit:
             if edit==1:
-                check[0] = input("Введите новый логин")
-                check[1] = input("Введите новый пароль")
-                check[3] = input("Введите состояние блокировки")
-                check[4] = input("Введите состояние вход без пароля")
+                check[0] = input("Введите новый логин: ")
+                check[1] = input("Введите новый пароль: ")
+                check[3] = input("Введите состояние блокировки: ")
+                check[4] = input("Введите состояние вход без пароля: ")
+                check[5] = input("Введите состояние ограничения на пароль: ")
             f1.write(f'{"|".join(check)}'+'\n')
         else:
             skip = 1
+            f1.write(f'{"|".join(check)}' + '\n')
     f.close()
     f1.close()
+    filechanger()
 def filechanger():
     f = open("users.txt", 'w')
     f1 = open('users2.txt', 'r')
@@ -140,6 +171,7 @@ f'''
 Пароль: {list[1]}
 Блокировка: {list[3]}
 Вход без пароля: {list[4]}
+Ограничения на пароль: {list[5]}
 ''')
 
 if __name__ == '__main__':
