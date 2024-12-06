@@ -427,12 +427,10 @@ class KeyPass(QWidget):
         exit()
 if __name__ == '__main__':
     filesmanager.predobrabot()
-    
     app = QApplication(sys.argv)
     check = KeyPass()
     check.show()
-    while app.exec_()!=1:
-        pass
+    app.exec()
     print(1)
     filesmanager.shifrSHA()
     sys.exit(1)
