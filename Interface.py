@@ -62,8 +62,8 @@ class Autorisation(QWidget):
             user, error = filesmanager.checkUser(name, passw)
             if(user):
                 if user.withoutpass == '1':
-                    self.ps = PasswordChange(user)
-                    self.ps.show()
+                    self.pss = PasswordChange(user)
+                    self.pss.show()
                     
                 else:
                     if user.mode == 'admin':
@@ -72,6 +72,7 @@ class Autorisation(QWidget):
                     if user.mode == 'user':
                         self.act = UserActions(user)
                         self.act.show()
+                self.password.setText('')
             else:
                 self.msg = QMessageBox()
                 self.msg.setText(error)
@@ -134,13 +135,17 @@ class PasswordChange(QWidget):
     def trychange(self):
         lastpass = self.lastpass.text()
         newpass =  self.newpass.text()
-        confirmpass = self. confirmpass.text()
+        confirmpass = self.confirmpass.text()
         self.msg = QMessageBox()
         self.msg.setText('Пароль успешно установлен')
-        if not (error:=filesmanager.setpassword(self.user, lastpass, newpass, confirmpass)):
+        error=filesmanager.setpassword(self.user, lastpass, newpass, confirmpass)
+        if not error:
             self.msg.show()
-            time.sleep(5)
-            exit()
+            self.lastpass.setText('')
+            self.newpass.setText('')
+            self.confirmpass.setText('')
+            #если в этот момент нужно выходить из акка
+            #exit()
         else:
             self.msg.setText(error)
             self.msg.show()
@@ -186,10 +191,12 @@ class AdminActions(QWidget):
         self.ps.show()
     
     def add(self):
-        pass
+        self.ad = AddUser()
+        self.ad.show()
     
     def adminca(self):
-        pass
+        self.adm = Adminca()
+        self.adm.show()
     
     def exit(self):
         self.close()
@@ -259,17 +266,25 @@ class AddUser(QWidget):
         self.close()
 
 class Adminca(QWidget):
-    def __init__(self, user):
+    def __init__(self):
         super(Adminca,self).__init__()
-        self.newuser = user
-        self.user = user
+        self.userList = filesmanager.UserList()
+        self.newuserfromlist()
+        f = open("users2.txt", 'w')
+        f.close()
         self.initUI()
+        self.saving = False
+    def newuserfromlist(self):
+        userr = self.userList.pop(0)
+        self.user = filesmanager.User([userr.login, userr.password, userr.mode, userr.ban, userr.withoutpass])
+        self.newuser = filesmanager.User([userr.login, userr.password, userr.mode, userr.ban, userr.withoutpass])
+        
 
     def initUI(self):
         infoname = QLabel('Имя пользователя')
         infoban = QLabel('Блокировка')
         infowithoutpass = QLabel('Вход без пароля')
-        name = QLabel(self.newuser.login)
+        self.name = QLabel(self.newuser.login)
         self.ban = QCheckBox(self)
         self.withoutpass = QCheckBox(self)
 
@@ -282,10 +297,10 @@ class Adminca(QWidget):
         self.withoutpass.stateChanged.connect(self.changewithoutpass)
 
         btnNext = QPushButton('Следующий', self)
-        btnNext.clicked.connect(self.trychange)
+        btnNext.clicked.connect(self.next)
 
         btnSave = QPushButton('Сохранить', self)
-        btnSave.clicked.connect(self.exit)
+        btnSave.clicked.connect(self.save)
 
         btnCancel = QPushButton('Выйти', self)
         btnCancel.clicked.connect(self.exit)
@@ -293,7 +308,7 @@ class Adminca(QWidget):
         grid = QGridLayout()
         grid.setSpacing(10)
         grid.addWidget(infoname, 1, 0)
-        grid.addWidget(name, 1, 1)
+        grid.addWidget(self.name, 1, 1)
 
         grid.addWidget(infoban, 2, 0)
         grid.addWidget(self.ban, 2, 1)
@@ -309,29 +324,115 @@ class Adminca(QWidget):
         self.setLayout(grid)
         self.setGeometry(1000,500, 400, 370)
         self.setWindowTitle("Администрирование")
+    
+    
 
     def changeBan(self, state):
 
         if state == Qt.Checked:
-            self.newuser.ban = 1
+            self.newuser.ban = '1'
         else:
-            self.newuser.ban = 0
+            self.newuser.ban = '0'
     
     def changewithoutpass(self, state):
 
         if state == Qt.Checked:
-            self.newuser.withoutpass = 1
+            self.newuser.withoutpass = '1'
         else:
-            self.newuser.withoutpass = 0
+            self.newuser.withoutpass = '0'
 
     def save(self):
         self.user = self.newuser
+        self.loadintofile(self.user)
+        self.saving=True
+
+    def next(self):
+        if not self.saving:
+            self.loadintofile(self.user)
+            self.saving=True
+        if self.userList != []:
+            self.newuserfromlist()
+            if self.newuser.ban == '1':
+                self.ban.setChecked(True)
+            else:
+                self.ban.setChecked(False)
+            if self.newuser.withoutpass == '1':
+                self.withoutpass.setChecked(True)
+            else:
+                self.withoutpass.setChecked(False)
+            self.name.setText(self.newuser.login)
+            self.saving = False
+        else:
+            self.msgg = QMessageBox()
+            self.msgg.setText('Список закончился')
+            self.msgg.show()
+        
+
+        
+    def loadintofile(self, uuser):
+        f = open("users2.txt", 'a')
+        f.write(str(uuser.get()))
+        f.close()
 
     def exit(self):#следующий и выход должны по разному обрабатываться
-        return self.user
+        if not self.saving:
+            self.loadintofile(self.user)
+        for elem in self.userList:
+            self.loadintofile(elem)
+        filesmanager.filechanger()
+        self.close()
 
+
+class KeyPass(QWidget):
+    def __init__(self):
+        super(KeyPass,self).__init__()
+        self.initUI()
+        
+        
+    def initUI(self):
+        info = QLabel('Введите ключевую фразу')
+        self.key = QLineEdit()
+        self.key.setEchoMode(QLineEdit.EchoMode.Password)
+
+        btnOk = QPushButton('Check', self)
+        btnOk.clicked.connect(self.getinfo)
+
+        btnCancel = QPushButton('Cancel', self)
+        btnCancel.clicked.connect(self.exit)
+
+        grid = QGridLayout()
+        grid.setSpacing(10)
+        grid.addWidget(info, 1, 0)
+        grid.addWidget(self.key, 1, 1)
+        grid.addWidget(btnOk, 2, 0)
+        grid.addWidget(btnCancel, 2, 1)
+        self.setLayout(grid)
+        self.setGeometry(1000,500, 200, 200)
+        self.setWindowTitle("Проверка доступа")
+
+    def getinfo(self):
+        txt = self.key.text()
+        if filesmanager.keypass(txt):
+            self.ex = Autorisation()
+            self.hide()
+            self.ex.show()
+            
+        else:
+            self.msggg = QMessageBox()
+            self.msggg.setText('Не верная фраза')
+            self.msggg.show()
+    def closeEvent(self, event):
+        event.ignore()
+    def exit(self):
+        exit()
 if __name__ == '__main__':
+    filesmanager.predobrabot()
+    
     app = QApplication(sys.argv)
-    ex = Autorisation()
-    ex.show()
-    sys.exit(app.exec_())
+    check = KeyPass()
+    check.show()
+    while app.exec_()!=1:
+        pass
+    print(1)
+    filesmanager.shifrSHA()
+    sys.exit(1)
